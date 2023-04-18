@@ -20,7 +20,9 @@ class ExpenseCategoryList extends StatelessWidget {
                 child: ListTile(
                   title: Text(category.name),
                   trailing: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      CategoryDB.instance.deleteCategory(category.id);
+                    },
                     icon: Icon(Icons.delete),
                   ),
                 ),
