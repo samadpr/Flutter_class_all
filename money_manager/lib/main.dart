@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:money_manager/db/category/category_db.dart';
 import 'package:money_manager/models/category/category_model.dart';
 import 'package:money_manager/screens/home/screen_home.dart';
 
 Future<void> main() async {
+  final obj1 = CategoryDB();
+  final obj2 = CategoryDB();
+  // print('objects comparing');
+  // print(obj1 == obj2);
+
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
