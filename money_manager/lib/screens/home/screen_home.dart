@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/db/category/category_db.dart';
 import 'package:money_manager/models/category/category_model.dart';
+import 'package:money_manager/screens/add_transaction/screen_add_transaction.dart';
 import 'package:money_manager/screens/category/category_add_popup.dart';
 import 'package:money_manager/screens/category/screen_category.dart';
 import 'package:money_manager/screens/home/widgets/bottom_navigation.dart';
@@ -11,7 +12,10 @@ class ScreenHome extends StatelessWidget {
 
   static ValueNotifier<int> SelectedIndexNotifire = ValueNotifier(0);
 
-  final _pages = const [ScreenTransaction(), ScreenCategory()];
+  final _pages = const [
+    ScreenTransaction(),
+    ScreenCategory(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +38,7 @@ class ScreenHome extends StatelessWidget {
         onPressed: () {
           if (SelectedIndexNotifire.value == 0) {
             print('add Transactions');
+            Navigator.of(context).pushNamed(ScreenAddTransaction.routeName);
           } else {
             print('add category');
 

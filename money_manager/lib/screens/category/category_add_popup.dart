@@ -30,7 +30,7 @@ Future<void> showCatogoryAddPopup(BuildContext context) async {
             child: Row(
               children: [
                 RadioButton(
-                  title: 'income',
+                  title: 'Income',
                   type: CategoryType.income,
                 ),
                 RadioButton(
