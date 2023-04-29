@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/db/category/category_db.dart';
 import 'package:money_manager/models/category/category_model.dart';
+import 'package:money_manager/models/transaction/transaction_model.dart';
 import 'package:money_manager/screens/category/category_add_popup.dart';
 
 class ScreenAddTransaction extends StatefulWidget {
@@ -17,6 +18,17 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
   DateTime? _selectedDate;
   CategoryType? _selectedCategoryType;
   CategoryModel? _selectedCategoryModel;
+
+  String? _categoryID;
+
+  final _purposeTextEditingController = TextEditingController();
+  final _amountTextEditingController = TextEditingController();
+
+  @override
+  void initState() {
+    _selectedCategoryType = CategoryType.income;
+    super.initState();
+  }
 
   /*
   Purpose
@@ -36,6 +48,7 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
             children: [
               //Purpose
               TextFormField(
+                controller: _purposeTextEditingController,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                   hintText: 'Purpose',
@@ -43,38 +56,39 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
               ),
               //Amount
               TextFormField(
+                controller: _amountTextEditingController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   hintText: 'Amount',
                 ),
               ),
               //Date
-             
-                TextButton.icon(
-                  onPressed: () async {
-                    final _selectedDateTemp = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate:
-                          DateTime.now().subtract(const Duration(days: 365)),
-                      lastDate: DateTime.now(),
-                    );
 
-                    if (_selectedDateTemp == null) {
-                      return;
-                    } else {
-                      print(_selectedDateTemp.toString());
-                      setState(() {
-                        _selectedDate = _selectedDateTemp;
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.calendar_today),
-                  label: Text(_selectedDate == null
-                      ? 'Select Date'
-                      : _selectedDate!.toString()),
-                ),
-              
+              TextButton.icon(
+                onPressed: () async {
+                  final _selectedDateTemp = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate:
+                        DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now(),
+                  );
+
+                  if (_selectedDateTemp == null) {
+                    return;
+                  } else {
+                    print(_selectedDateTemp.toString());
+                    setState(() {
+                      _selectedDate = _selectedDateTemp;
+                    });
+                  }
+                },
+                icon: Icon(Icons.calendar_today),
+                label: Text(_selectedDate == null
+                    ? 'Select Date'
+                    : _selectedDate!.toString()),
+              ),
+
               //Category
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -83,8 +97,13 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
                     children: [
                       Radio(
                         value: CategoryType.income,
-                        groupValue: CategoryType.income,
-                        onChanged: (NewValue) {},
+                        groupValue: _selectedCategoryType,
+                        onChanged: (NewValue) {
+                          setState(() {
+                            _selectedCategoryType = CategoryType.income;
+                            _categoryID = null;
+                          });
+                        },
                       ),
                       Text('Income'),
                     ],
@@ -93,8 +112,13 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
                     children: [
                       Radio(
                         value: CategoryType.expense,
-                        groupValue: CategoryType.income,
-                        onChanged: (NewValue) {},
+                        groupValue: _selectedCategoryType,
+                        onChanged: (NewValue) {
+                          setState(() {
+                            _selectedCategoryType = CategoryType.expense;
+                            _categoryID = null;
+                          });
+                        },
                       ),
                       Text('Expense'),
                     ],
@@ -104,21 +128,33 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
               //Category Type
               DropdownButton(
                 hint: const Text('Select Category'),
-                items: CategoryDB.instance.incomeCategoryListListener.value
+                value: _categoryID,
+                items: (_selectedCategoryType == CategoryType.income
+                        ? CategoryDB().incomeCategoryListListener
+                        : CategoryDB().expenseCategoryListListener)
+                    .value
                     .map((e) {
                   return DropdownMenuItem(
                     value: e.id,
                     child: Text(e.name),
+                    onTap: () {
+                      _selectedCategoryModel = e;
+                    },
                   );
                 }).toList(),
                 onChanged: (selectedValue) {
                   print(selectedValue);
+                  setState(() {
+                    _categoryID = selectedValue;
+                  });
                 },
               ),
               // Submit
 
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  addTransaction();
+                },
                 child: Text('Submit'),
               )
             ],
@@ -127,41 +163,77 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
       ),
     );
   }
-}
 
+  Future<void> addTransaction() async {
+    final _purposeText = _purposeTextEditingController.text;
+    final _amountText = _amountTextEditingController.text;
+    if (_purposeText.isEmpty) {
+      return;
+    }
+    if (_amountText.isEmpty) {
+      return;
+    }
+    // if(_categoryID == null){
+    //   return;
+    // }
+    if (_selectedDate == null) {
+      return;
+    }
+    if (_selectedCategoryModel == null) {
+      return;
+    }
 
-class RadioButtonTransaction extends StatelessWidget {
-  final String title;
-  final CategoryType type;
-  RadioButtonTransaction({
-    super.key,
-    required this.title,
-    required this.type,
-  });
+    final _parsedAmount = double.tryParse(_amountText);
+    if (_parsedAmount == null) {
+      return;
+    }
 
-  CategoryType? _type;
+    // _selectedDate
+    // _selectedCategoryType
+    // _categoryI
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        ValueListenableBuilder(
-            valueListenable: selectedCategoryNotifire,
-            builder: (BuildContext ctx, CategoryType newCategory, Widget? _) {
-              return Radio<CategoryType>(
-                value: type,
-                groupValue: newCategory,
-                onChanged: (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  selectedCategoryNotifire.value = value;
-                  selectedCategoryNotifire.notifyListeners();
-                },
-              );
-            }),
-        Text(title),
-      ],
-    );
+    // final _model = TransactionModel(
+    //   purpose: _purposeText,
+    //   amount:  _parsedAmount,
+    //   date: _selectedDate!,
+    //   category: _selectedCategoryType!,
+    //   type: _selectedCategoryModel!,
+    // );
   }
 }
+
+// class RadioButtonTransaction extends StatelessWidget {
+//   final String title;
+//   final CategoryType type;
+//   RadioButtonTransaction({
+//     super.key,
+//     required this.title,
+//     required this.type,
+//   });
+
+//   CategoryType? _type;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       children: [
+//         ValueListenableBuilder(
+//             valueListenable: selectedCategoryNotifire,
+//             builder: (BuildContext ctx, CategoryType newCategory, Widget? _) {
+//               return Radio<CategoryType>(
+//                 value: type,
+//                 groupValue: newCategory,
+//                 onChanged: (value) {
+//                   if (value == null) {
+//                     return;
+//                   }
+//                   selectedCategoryNotifire.value = value;
+//                   selectedCategoryNotifire.notifyListeners();
+//                 },
+//               );
+//             }),
+//         Text(title),
+//       ],
+//     );
+//   }
+// }
