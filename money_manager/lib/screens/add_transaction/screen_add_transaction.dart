@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:money_manager/db/category/category_db.dart';
+import 'package:money_manager/db/transaction/transaction_db.dart';
 import 'package:money_manager/models/category/category_model.dart';
 import 'package:money_manager/models/transaction/transaction_model.dart';
 import 'package:money_manager/screens/category/category_add_popup.dart';
@@ -192,13 +193,15 @@ class _ScreenAddTransactionState extends State<ScreenAddTransaction> {
     // _selectedCategoryType
     // _categoryI
 
-    // final _model = TransactionModel(
-    //   purpose: _purposeText,
-    //   amount:  _parsedAmount,
-    //   date: _selectedDate!,
-    //   category: _selectedCategoryType!,
-    //   type: _selectedCategoryModel!,
-    // );
+    final _model = TransactionModel(
+      purpose: _purposeText,
+      amount:  _parsedAmount,
+      date: _selectedDate!,
+      type: _selectedCategoryType!,
+      category: _selectedCategoryModel!,
+    );
+
+    TransactionDB.instance.addTransaction(_model);
   }
 }
 
